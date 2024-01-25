@@ -3,7 +3,7 @@
 You can test the examples from the section below, simply by running the server given in the `./examples` directory:
 ```shell
 cd ./examples
-deno run --check --unstable --allow-read --allow-write --allow-net --allow-run index.ts
+deno task start
 ```
 
 You can then send HTTP queries to the server with the command `curl`:
