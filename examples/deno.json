@@ -1,0 +1,5 @@
+{
+  "imports": {
+    "VSHS": "../index.ts"
+  }
+}
