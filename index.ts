@@ -124,11 +124,10 @@ function buildRequestHandler(routes: Routes) {
 			if(route === null)
 				return new Response('404 Not Found', {status: 404});
 
-			let body_params = {};
-			let body = await read_body(request);
+			let body = request.body;
 
 			if(body !== null)
-				body = JSON.parse(body);
+				body = await request.json();
 
 			const answer = await route.handler({url, body, route});
 
@@ -149,26 +148,6 @@ function buildRequestHandler(routes: Routes) {
 			return new Response( e.message, {status: error_code, headers: { "Access-Control-Allow-Origin": "*" }} );
 		}
 	};
-}
-
-async function read_body(request: Request) {
-
-	const body = request.body;
-	if(body === null)
-		return null;
-
-	let result = "";
-
-	// Because it would have been too simple if we had a simple API... JS = Baka
-	const decoder = new TextDecoder();
-	const body_reader = body.getReader();
-	let chunk!: {done: boolean, value?: Uint8Array};
-	while( ! (chunk = await body_reader.read()).done )
-		result += decoder.decode(chunk.value, {stream: true});
-
-	result += decoder.decode();
-
-	return result;
 }
 
 
