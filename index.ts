@@ -83,7 +83,10 @@ async function loadAllRoutesHandlers(routes: string): Promise<Routes> {
 
 	type Module = {default: Handler};
 	const handlers   = Object.fromEntries( await Promise.all( routes_uri.map( async (uri) => {
-		let module: Module = await import(`file://${uri}`);
+		
+		if( uri[1] === ':' ) // windows drive
+			uri = `file://${uri}`;
+		let module: Module = await import(uri);
 
 		return [uri.slice(routes.length, - ".ts".length), module.default];
 	})));
