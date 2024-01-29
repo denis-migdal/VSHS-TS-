@@ -29,23 +29,25 @@ export class HTTPError extends Error {
 	}
 }
 
+
 export class SSEResponse {
 
-	#closeCallback: () => void;
 	#controller?: ReadableStreamDefaultController;
 
 	#stream = new ReadableStream({
 
-		start: (controller) => {
-			this.#controller = controller
+		start: (controller: any) => {
+			this.#controller = controller;
 		},
 		cancel: () => {
-			this.#closeCallback();
+			this.onConnectionClosed?.();
 		}
 	});
 
-	constructor(closeCallback: () => void) {
-		this.#closeCallback = closeCallback;
+	onConnectionClosed: null| (() => Promise<void>|void) = null;
+
+	constructor(run: (self: SSEResponse) => Promise<void>) {
+		run(this);
 	}
 
 	get _body() {
@@ -131,14 +133,14 @@ function buildRequestHandler(routes: Routes) {
 
 			const answer = await route.handler({url, body, route});
 
-			if(answer instanceof SSEResponse) {
+			if(answer instanceof SSEResponse)
 				return new Response(answer._body, {headers: {"content-type": "text/event-stream", "Access-Control-Allow-Origin": "*"} } )
-			}
 
 			return new Response( JSON.stringify(answer, null, 4), {headers: {"Access-Control-Allow-Origin": "*"} } );
 
 		} catch(e) {
 
+			console.log("here exception");
 			console.error(e);
 
 			let error_code = 500;

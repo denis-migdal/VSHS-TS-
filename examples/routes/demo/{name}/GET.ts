@@ -2,25 +2,25 @@ import { HandlerParams, SSEResponse } from "VSHS";
 
 export default async function({route}: HandlerParams) {
 
-	let SSE = new SSEResponse( () => {
-		process.kill()
-	});
-
 	// not optimized
 	const process = new Deno.Command("tail", {
-		args: ["-f", "-n", "-1", "./demo/messages.txt"],
-		stdout: "piped"
-	}).spawn();
+			args: ["-F", "-n", "-1", "./demo/messages.txt"],
+			stdout: "piped",
+			stderr: "piped",
+		}).spawn();
 
-	for await (let chunk of process.stdout.pipeThrough( new TextDecoderStream() ) ) {
+	return new SSEResponse( async (self) => {
+
+		self.onConnectionClosed = () => process.kill();
 		
-		let data = JSON.parse(chunk);
+		for await (let chunk of process.stdout.pipeThrough( new TextDecoderStream() ) ) {
+			
+			let data = JSON.parse(chunk);
 
-		if(data.name !== route.vars.name)
-			return;
+			if(data.name !== route.vars.name)
+				continue;
 
-		SSE.send(data, "message");
-	}
-
-	return SSE;
+			self.send(data, "message");
+		}
+	});
 }

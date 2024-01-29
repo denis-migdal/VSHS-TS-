@@ -138,28 +138,22 @@ import { SSEResponse } from "../../../HTTPServer.ts";
 
 export default async function() {
 
-	let SSE = new SSEResponse( () => {
-		clearInterval(timer);
+	return new SSEResponse( async (self) => {
+
+		self.onConnectionClosed = () => {
+			clearInterval(timer);
+		}
+
+		let i = 0;
+		let timer = setInterval( () => {
+			self.send({count: i++}, "event_name")
+		}, 1000);
+
 	});
-
-	let i = 0;
-	let timer = setInterval( () => {
-		SSE.send({count: i++}, "event_name")
-	}, 1000);
-
-	return SSE;
 }
 ```
 
-The method `send(message: any, event?: string)` sends a new event to the client. Once the client closes the connection, the callback given in the constructor is called.
-
-```typescript
-import {HTTPError} from "VSHS";
-
-export default async function() {
-	throw new HTTPError(403, "Forbidden Access");
-}
-```
+The method `send(message: any, event?: string)` sends a new event to the client. Once the client closes the connection, the callback registered in `self.onConnectionClosed` is called.
 
 ```bash
 $ curl -X GET http://localhost:8080/server-sent-events
