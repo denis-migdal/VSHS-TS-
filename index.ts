@@ -131,8 +131,12 @@ function buildRequestHandler(routes: Routes) {
 
 			let body = request.body;
 
-			if(body !== null)
-				body = await request.json();
+			if(body !== null) {
+
+				let txt = await request.text();
+				if( txt !== "")
+					body = JSON.parse(txt);
+			}
 
 			const answer = await route.handler({url, body, route});
 
