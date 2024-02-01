@@ -114,6 +114,11 @@ async function getAllRoutes(currentPath: string): Promise<string[]> {
 
 type REST_Methods = "POST"|"GET"|"DELETE"|"PUT"|"PATCH";
 
+const CORS_HEADERS = {
+	"Access-Control-Allow-Origin": "*",
+	"Access-Control-Allow-Methods": "POST, GET, PATCH, PUT, OPTIONS, DELETE"
+};
+
 function buildRequestHandler(routes: Routes) {
 
 	const regexes = Object.entries(routes).map( ([uri, handler]) => [path2regex(uri), handler, uri] as const);
@@ -122,12 +127,16 @@ function buildRequestHandler(routes: Routes) {
 
 		try {
 
-			const method = request.method as REST_Methods;
+			const method = request.method as REST_Methods | "OPTIONS";
+
+			if(method === "OPTIONS")
+				return new Response(null, {headers: CORS_HEADERS});
+
 			const url = new URL(request.url);
 
 			const route = getRouteHandler(regexes, method, url);
 			if(route === null)
-				return new Response('404 Not Found', {status: 404});
+				return new Response('404 Not Found', {status: 404, headers: CORS_HEADERS});
 
 			let body = request.body;
 
@@ -141,9 +150,9 @@ function buildRequestHandler(routes: Routes) {
 			const answer = await route.handler({url, body, route});
 
 			if(answer instanceof SSEResponse)
-				return new Response(answer._body, {headers: {"content-type": "text/event-stream", "Access-Control-Allow-Origin": "*"} } )
+				return new Response(answer._body, {headers: {"content-type": "text/event-stream", ...CORS_HEADERS} } )
 
-			return new Response( JSON.stringify(answer, null, 4), {headers: {"Access-Control-Allow-Origin": "*"} } );
+			return new Response( JSON.stringify(answer, null, 4), {headers: CORS_HEADERS} );
 
 		} catch(e) {
 
@@ -154,7 +163,7 @@ function buildRequestHandler(routes: Routes) {
 			if( e instanceof HTTPError )
 				error_code = e.error_code;
 
-			return new Response( e.message, {status: error_code, headers: { "Access-Control-Allow-Origin": "*" }} );
+			return new Response( e.message, {status: error_code, headers: CORS_HEADERS} );
 		}
 	};
 }
