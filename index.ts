@@ -11,7 +11,7 @@ export default async function startHTTPServer({port, hostname, routes}: HTTPServ
 	const requestHandler = buildRequestHandler(routesHandlers);
 
 	// https://docs.deno.com/runtime/tutorials/http_server
-	Deno.serve({ port, hostname }, requestHandler);
+	await Deno.serve({ port, hostname }, requestHandler).finished;
 }
 
 export class HTTPError extends Error {
