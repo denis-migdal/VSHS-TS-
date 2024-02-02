@@ -19,7 +19,7 @@ import startHTTPServer from "VSHS";
 
 startHTTPServer({
   port: 8080,
-  hostname: '127.0.0.1',
+  hostname: 'localhost',
   routes: `${Deno.cwd()}/routes`
 });
 ```
@@ -28,7 +28,7 @@ startHTTPServer({
 
 The `routes` parameter is a directory containing the differents routes your HTTP server will answer to. In this directory, each subdirectory corresponds to a route, and each files, to a supported HTTP method for this route.
 
-For example, the file `./routes/foo/GET.ts` defines how your server will answer to a `GET /foo` HTTP query. In order to do so, `GET.ts` default exports an asynchronous function whose return value is the answer to the received HTTP query.
+For example, the file `./routes/hello-world/GET.ts` defines how your server will answer to a `GET /hello-world` HTTP query. In order to do so, `GET.ts` default exports an asynchronous function whose return value is the answer to the received HTTP query.
 
 ```typescript
 export default async function() {
@@ -37,7 +37,7 @@ export default async function() {
 ```
 
 ```shell
-$ curl -w "\n" -X GET http://localhost:8080/foo
+$ curl -w "\n" -X GET http://localhost:8080/hello-world
 {
 	"message": "Hello World"
 }
@@ -53,7 +53,7 @@ export default async function(
 		{
 			url,	  // URL: the requested URL
 			// ( cf https://developer.mozilla.org/en-US/docs/Web/API/URL )
-			body,	  // any|null: JSON.parse( query.body ) or null if no body.
+			body,	  // any|null: JSON.parse( query.body ) or null if empty body.
 			route: {// cf next section
 				path  // string
 				vars  // Record<string, string>
@@ -88,7 +88,7 @@ $ curl -w "\n" -X POST -d '{"body": "A"}' http://localhost:8080/params/C?url=B
 
 The `route` parameter has two components:
 
-- `path` is the route path, e.g. `/foo/{name}/GET.ts`. Letters in between braces represents a variable, corresponding to set of letters (except `/`). Hence a single route path can match several URL, e.g.:
+- `path` is the route path, e.g. `/params/{name}/GET.ts`. Letters in between braces represents a variable, corresponding to set of letters (except `/`). Hence a single route path can match several URL, e.g.:
   - `/params/faa`
   - `/params/fuu`
 

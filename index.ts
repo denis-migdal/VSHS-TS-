@@ -5,7 +5,7 @@ type HTTPServerOpts = {
 };
 
 
-export default async function startHTTPServer({port, hostname, routes}: HTTPServerOpts) {
+export default async function startHTTPServer({port = 8080, hostname = "localhost", routes = "/routes"}: HTTPServerOpts) {
 
 	const routesHandlers = await loadAllRoutesHandlers(routes);
 	const requestHandler = buildRequestHandler(routesHandlers);
