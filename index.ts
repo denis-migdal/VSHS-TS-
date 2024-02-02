@@ -54,7 +54,7 @@ export class SSEResponse {
 		return this.#stream;
 	}
 
-	send(data: any, event?: string) {
+	async send(data: any, event?: string) {
 
 		let text = `data: ${JSON.stringify(data)}\n\n`;
 		if( event !== undefined)

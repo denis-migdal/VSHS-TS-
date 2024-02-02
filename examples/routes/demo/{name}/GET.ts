@@ -20,7 +20,7 @@ export default async function({route}: HandlerParams) {
 			if(data.name !== route.vars.name)
 				continue;
 
-			self.send(data, "message");
+			await self.send(data, "message");
 		}
 	});
 }

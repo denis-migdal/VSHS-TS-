@@ -145,8 +145,8 @@ export default async function() {
 		}
 
 		let i = 0;
-		let timer = setInterval( () => {
-			self.send({count: i++}, "event_name")
+		let timer = setInterval( async () => {
+			await self.send({count: i++}, "event_name")
 		}, 1000);
 
 	});
