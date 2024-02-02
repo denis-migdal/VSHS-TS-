@@ -156,7 +156,6 @@ function buildRequestHandler(routes: Routes) {
 
 		} catch(e) {
 
-			console.log("here exception");
 			console.error(e);
 
 			let error_code = 500;
