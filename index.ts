@@ -152,7 +152,7 @@ function buildRequestHandler(routes: Routes) {
 			if(answer instanceof SSEResponse)
 				return new Response(answer._body, {headers: {"content-type": "text/event-stream", ...CORS_HEADERS} } )
 
-			return new Response( JSON.stringify(answer, null, 4), {headers: CORS_HEADERS} );
+			return new Response( JSON.stringify(answer, null, 4), {headers: {"content-type": "application/json", ...CORS_HEADERS}} );
 
 		} catch(e) {
 
