@@ -5,7 +5,14 @@ type HTTPServerOpts = {
 };
 
 
+export function rootDir() {
+	return Deno.cwd();
+}
+
 export default async function startHTTPServer({port = 8080, hostname = "localhost", routes = "/routes"}: HTTPServerOpts) {
+
+	if(routes[0] === "/")
+		routes = rootDir() + routes;
 
 	const routesHandlers = await loadAllRoutesHandlers(routes);
 	const requestHandler = buildRequestHandler(routesHandlers);
@@ -79,14 +86,28 @@ type Routes = Record<string, Handler>;
 
 async function loadAllRoutesHandlers(routes: string): Promise<Routes> {
 
+	const ROOT = rootDir();
 	const routes_uri = await getAllRoutes(routes);
 
 	type Module = {default: Handler};
 	const handlers   = Object.fromEntries( await Promise.all( routes_uri.map( async (uri) => {
-		
+
+		// only with imports map, but bugged
+		// https://github.com/denoland/deno/issues/22237
+		//if( uri.startsWith(ROOT) )
+		//	uri = uri.slice(ROOT.length)
+
 		if( uri[1] === ':' ) // windows drive
 			uri = `file://${uri}`;
-		let module: Module = await import(uri);
+
+		let module!: Module;
+		try{
+			module = await import(uri);
+		} catch(e) {
+			console.error(e);
+		}
+		
+
 
 		return [uri.slice(routes.length, - ".ts".length), module.default];
 	})));

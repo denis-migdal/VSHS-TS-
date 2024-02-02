@@ -2,8 +2,7 @@
 
 You can test the examples from the section below, simply by running the server given in the `./examples` directory:
 ```shell
-cd ./examples
-deno task start
+deno task --cwd examples/ start
 ```
 
 You can then send HTTP queries to the server with the command `curl`:
@@ -172,5 +171,5 @@ data: {"count":2}
 We also provide an additionnal demonstration in `./examples/demo/`.
 
 This webpage sends two HTTP queries :
-- `GET /messages/website` to receive Server-Sent Events at each modification of `./examples/messages.txt`.
-- `POST /messages/website` to append a new line into `./examples/messages.txt` at each submission of the formular.
+- `GET /demo/website` to receive Server-Sent Events at each modification of `./examples/messages.txt`.
+- `POST /demo/website` to append a new line into `./examples/messages.txt` at each submission of the formular.

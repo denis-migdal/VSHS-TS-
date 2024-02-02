@@ -1,10 +1,10 @@
-import { HandlerParams, SSEResponse } from "VSHS";
+import { HandlerParams, SSEResponse, rootDir } from "VSHS";
 
 export default async function({route}: HandlerParams) {
 
 	// not optimized
 	const process = new Deno.Command("tail", {
-			args: ["-F", "-n", "-1", "./demo/messages.txt"],
+			args: ["-F", "-n", "-1", `${rootDir()}/demo/messages.txt`],
 			stdout: "piped",
 			stderr: "piped",
 		}).spawn();

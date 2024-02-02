@@ -1,4 +1,4 @@
-import { HTTPError, HandlerParams } from "VSHS";
+import { HTTPError, HandlerParams, rootDir } from "VSHS";
 
 export default async function(request: HandlerParams) {
 
@@ -11,7 +11,7 @@ export default async function(request: HandlerParams) {
 
 	const timestamp = new Date().toISOString();
 
-	await Deno.writeTextFile("./demo/messages.txt", JSON.stringify({timestamp, name, message}) + "\n", {append: true});
+	await Deno.writeTextFile(`${rootDir()}/demo/messages.txt`, JSON.stringify({timestamp, name, message}) + "\n", {append: true});
 
 	return {
 		answer: "OK",
