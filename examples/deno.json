@@ -1,6 +1,6 @@
 {
   "tasks": {
-    "start": "deno run --watch --check --allow-read --allow-write --allow-net --allow-run index.ts"
+    "start": "deno run --watch --check --unstable-sloppy-imports --allow-read --allow-write --allow-net --allow-run index.ts"
   },
   "imports": {
     "VSHS": "../index.ts"
