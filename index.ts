@@ -63,6 +63,7 @@ export class SSEResponse {
 
 	async send(data: any, event?: string) {
 
+		// JSON.stringify is required to escape characters.
 		let text = `data: ${JSON.stringify(data)}\n\n`;
 		if( event !== undefined)
 			text = `event: ${event}\n${text}`
@@ -168,12 +169,18 @@ function buildRequestHandler(routes: Routes) {
 					body = JSON.parse(txt);
 			}
 
-			const answer = await route.handler({url, body, route});
+			let answer = await route.handler({url, body, route});
 
 			if(answer instanceof SSEResponse)
 				return new Response(answer._body, {headers: {"content-type": "text/event-stream", ...CORS_HEADERS} } )
 
-			return new Response( JSON.stringify(answer, null, 4), {headers: {"content-type": "application/json", ...CORS_HEADERS}} );
+			let content_type = "text/plain";
+			if( typeof answer !== "string" ) {
+				answer = JSON.stringify(answer, null, 4);
+				content_type = "application/json";
+			}
+
+			return new Response( answer, {headers: {"content-type": content_type, ...CORS_HEADERS}} );
 
 		} catch(e) {
 
