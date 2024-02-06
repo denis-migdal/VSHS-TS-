@@ -158,7 +158,7 @@ function buildRequestHandler(routes: Routes) {
 
 			const route = getRouteHandler(regexes, method, url);
 			if(route === null)
-				return new Response('404 Not Found', {status: 404, headers: CORS_HEADERS});
+				throw new HTTPError(404, 'Not Found');
 
 			let body = request.body;
 
@@ -184,11 +184,12 @@ function buildRequestHandler(routes: Routes) {
 
 		} catch(e) {
 
-			console.error(e);
 
 			let error_code = 500;
 			if( e instanceof HTTPError )
 				error_code = e.error_code;
+			else
+				console.error(e);
 
 			return new Response( e.message, {status: error_code, headers: CORS_HEADERS} );
 		}
