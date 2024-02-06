@@ -1,7 +1,10 @@
+type Logger = (ip: string, method: string, url: URL, error: null|HTTPError|Error) => void;
+
 type HTTPServerOpts = {
 	port: number,
 	hostname: string,
-	routes: string
+	routes: string,
+	logger?: Logger // not documented
 };
 
 
@@ -9,13 +12,17 @@ export function rootDir() {
 	return Deno.cwd();
 }
 
-export default async function startHTTPServer({port = 8080, hostname = "localhost", routes = "/routes"}: HTTPServerOpts) {
+export default async function startHTTPServer({ port = 8080,
+												hostname = "localhost",
+												routes = "/routes",
+												logger = () => {}
+											}: HTTPServerOpts) {
 
 	if(routes[0] === "/")
 		routes = rootDir() + routes;
 
 	const routesHandlers = await loadAllRoutesHandlers(routes);
-	const requestHandler = buildRequestHandler(routesHandlers);
+	const requestHandler = buildRequestHandler(routesHandlers, logger);
 
 	// https://docs.deno.com/runtime/tutorials/http_server
 	await Deno.serve({ port, hostname }, requestHandler).finished;
@@ -141,17 +148,20 @@ const CORS_HEADERS = {
 	"Access-Control-Allow-Methods": "POST, GET, PATCH, PUT, OPTIONS, DELETE"
 };
 
-function buildRequestHandler(routes: Routes) {
+function buildRequestHandler(routes: Routes, logger?: Logger) {
 
 	const regexes = Object.entries(routes).map( ([uri, handler]) => [path2regex(uri), handler, uri] as const);
 
-	return async function(request: Request): Promise<Response> {
+	return async function(request: Request, connInfo: any): Promise<Response> {
+
+		const ip = connInfo.remoteAddr.hostname;
 
 		const url = new URL(request.url);
+		let error = null;
+		const method = request.method as REST_Methods | "OPTIONS";
 
 		try {
 
-			const method = request.method as REST_Methods | "OPTIONS";
 
 			if(method === "OPTIONS")
 				return new Response(null, {headers: CORS_HEADERS});
@@ -184,6 +194,7 @@ function buildRequestHandler(routes: Routes) {
 
 		} catch(e) {
 
+			error = e;
 
 			let error_code = 500;
 			if( e instanceof HTTPError )
@@ -203,6 +214,9 @@ function buildRequestHandler(routes: Routes) {
 			}
 
 			return new Response( e.message, {status: error_code, headers: CORS_HEADERS} );
+		} finally {
+			if( logger !== undefined )
+				logger(ip, method, url, error);
 		}
 	};
 }
