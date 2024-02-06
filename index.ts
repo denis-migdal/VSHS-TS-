@@ -147,14 +147,14 @@ function buildRequestHandler(routes: Routes) {
 
 	return async function(request: Request): Promise<Response> {
 
+		const url = new URL(request.url);
+
 		try {
 
 			const method = request.method as REST_Methods | "OPTIONS";
 
 			if(method === "OPTIONS")
 				return new Response(null, {headers: CORS_HEADERS});
-
-			const url = new URL(request.url);
 
 			const route = getRouteHandler(regexes, method, url);
 			if(route === null)
@@ -190,6 +190,17 @@ function buildRequestHandler(routes: Routes) {
 				error_code = e.error_code;
 			else
 				console.error(e);
+
+			const error_url = new URL(`/errors/${error_code}`, url);
+			const route = getRouteHandler(regexes, "GET", error_url);
+			if(route !== null) {
+				try{
+					let answer = await route.handler({url, body: e.message, route});
+					return new Response( answer, {headers: {"content-type": "text/plain", ...CORS_HEADERS}} );
+				} catch(e) {
+					console.error(e);
+				}
+			}
 
 			return new Response( e.message, {status: error_code, headers: CORS_HEADERS} );
 		}
