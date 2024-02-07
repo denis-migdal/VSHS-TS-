@@ -162,7 +162,6 @@ function buildRequestHandler(routes: Routes, logger?: Logger) {
 
 		try {
 
-
 			if(method === "OPTIONS")
 				return new Response(null, {headers: CORS_HEADERS});
 
@@ -207,7 +206,7 @@ function buildRequestHandler(routes: Routes, logger?: Logger) {
 			if(route !== null) {
 				try{
 					let answer = await route.handler({url, body: e.message, route});
-					return new Response( answer, {headers: {"content-type": "text/plain", ...CORS_HEADERS}} );
+					return new Response( answer, {status: error_code, headers: {"content-type": "text/plain", ...CORS_HEADERS}} );
 				} catch(e) {
 					console.error(e);
 				}
