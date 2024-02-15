@@ -38,7 +38,7 @@ export default async function() {
 ```shell
 curl -w "\n" -X GET http://localhost:8080/hello-world
 ```
-**Output:**
+***Output:***
 ```
 {
 	"message": "Hello World"
@@ -74,7 +74,7 @@ export default async function(
 ```shell
 curl -w "\n" -X POST -d '{"body": "A"}' http://localhost:8080/params/C?url=B
 ```
-**Output:**
+***Output:***
 ```
 {
     "urlParams": {
@@ -112,10 +112,10 @@ export default async function() {
 }
 ```
 
-```bash
+```shell
 curl -w "\n\nStatus code: %{http_code}\n" -X GET http://localhost:8080/exception
 ```
-**Output:**
+***Output:***
 ```
 Oups...
 
@@ -131,10 +131,10 @@ export default async function() {
 }
 ```
 
-```bash
+```shell
 curl -w "\n\nStatus code: %{http_code}\n" -X GET http://localhost:8080/http-error
 ```
-**Output:**
+***Output:***
 ```
 Forbidden Access
 
@@ -159,7 +159,7 @@ startHTTPServer({
 ```shell
 curl -w "\n\nType: %{content_type}\n" -X GET http://localhost:8080/
 ```
-**Output:**
+***Output:***
 ```
 <b>Hello world</b>
 
@@ -191,10 +191,10 @@ export default async function() {
 
 The method `send(message: any, event?: string)` sends a new event to the client. Once the client closes the connection, the callback registered in `self.onConnectionClosed` is called.
 
-```bash
+```shell
 curl -X GET http://localhost:8080/server-sent-events
 ```
-**Output:**
+***Output:***
 ```
 event: event_name
 data: {"count":0}
