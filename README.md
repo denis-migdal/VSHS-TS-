@@ -19,7 +19,7 @@ import startHTTPServer from "VSHS";
 startHTTPServer({
   port: 8080,
   hostname: 'localhost',
-  routes: `/routes`
+  routes: '/routes'
 });
 ```
 
@@ -36,7 +36,10 @@ export default async function() {
 ```
 
 ```shell
-$ curl -w "\n" -X GET http://localhost:8080/hello-world
+curl -w "\n" -X GET http://localhost:8080/hello-world
+```
+**Output:**
+```
 {
 	"message": "Hello World"
 }
@@ -69,7 +72,10 @@ export default async function(
 ```
 
 ```shell
-$ curl -w "\n" -X POST -d '{"body": "A"}' http://localhost:8080/params/C?url=B
+curl -w "\n" -X POST -d '{"body": "A"}' http://localhost:8080/params/C?url=B
+```
+**Output:**
+```
 {
     "urlParams": {
         "url": "B"
@@ -107,7 +113,10 @@ export default async function() {
 ```
 
 ```bash
-$ curl -w "\n\nStatus code: %{http_code}\n" -X GET http://localhost:8080/exception
+curl -w "\n\nStatus code: %{http_code}\n" -X GET http://localhost:8080/exception
+```
+**Output:**
+```
 Oups...
 
 Status code: 500
@@ -123,13 +132,39 @@ export default async function() {
 ```
 
 ```bash
-$ curl -w "\n\nStatus code: %{http_code}\n" -X GET http://localhost:8080/http-error
+curl -w "\n\nStatus code: %{http_code}\n" -X GET http://localhost:8080/http-error
+```
+**Output:**
+```
 Forbidden Access
 
 Status code: 403
 ```
 
 💡 If it exists, errors are redirected to the `/errors/{error_code}` route, with `body` containing the error message.
+
+### Static ressources
+
+You can also provide a directory containing static files 
+
+```ts
+startHTTPServer({
+  port: 8080,
+  hostname: 'localhost',
+  routes: '/routes',
+  static: '/assets'
+});
+```
+
+```bash
+curl -w "\n\nType: %{content_type}\n" -X GET http://localhost:8080/
+```
+**Output:**
+```
+<b>Hello world</b>
+
+Type: text/html
+```
 
 ### Server-Sent Events
 
@@ -157,7 +192,10 @@ export default async function() {
 The method `send(message: any, event?: string)` sends a new event to the client. Once the client closes the connection, the callback registered in `self.onConnectionClosed` is called.
 
 ```bash
-$ curl -X GET http://localhost:8080/server-sent-events
+curl -X GET http://localhost:8080/server-sent-events
+```
+**Output:**
+```
 event: event_name
 data: {"count":0}
 

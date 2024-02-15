@@ -4,6 +4,7 @@ type HTTPServerOpts = {
 	port: number,
 	hostname: string,
 	routes: string,
+	static?: string,
 	logger?: Logger // not documented
 };
 
@@ -15,14 +16,17 @@ export function rootDir() {
 export default async function startHTTPServer({ port = 8080,
 												hostname = "localhost",
 												routes = "/routes",
+												static: _static,
 												logger = () => {}
 											}: HTTPServerOpts) {
 
 	if(routes[0] === "/")
 		routes = rootDir() + routes;
+	if(_static?.[0] === "/")
+		_static = rootDir() + _static;
 
 	const routesHandlers = await loadAllRoutesHandlers(routes);
-	const requestHandler = buildRequestHandler(routesHandlers, logger);
+	const requestHandler = buildRequestHandler(routesHandlers, _static, logger);
 
 	// https://docs.deno.com/runtime/tutorials/http_server
 	await Deno.serve({ port, hostname }, requestHandler).finished;
@@ -148,7 +152,8 @@ const CORS_HEADERS = {
 	"Access-Control-Allow-Methods": "POST, GET, PATCH, PUT, OPTIONS, DELETE"
 };
 
-function buildRequestHandler(routes: Routes, logger?: Logger) {
+import { mimelite } from "https://deno.land/x/mimetypes@v1.0.0/mod.ts";
+function buildRequestHandler(routes: Routes, _static?: string, logger?: Logger) {
 
 	const regexes = Object.entries(routes).map( ([uri, handler]) => [path2regex(uri), handler, uri] as const);
 
@@ -166,8 +171,38 @@ function buildRequestHandler(routes: Routes, logger?: Logger) {
 				return new Response(null, {headers: CORS_HEADERS});
 
 			const route = getRouteHandler(regexes, method, url);
-			if(route === null)
-				throw new HTTPError(404, 'Not Found');
+			if(route === null) {
+				if( _static === undefined )
+					throw new HTTPError(404, "Not found");
+
+				let filepath = `${_static}/${url.pathname}`;
+				let content!: string;
+
+				try {
+					const info = await Deno.stat(filepath);
+
+					if( info.isDirectory )
+						filepath = `${filepath}/index.html`;
+
+					content = await Deno.readTextFile(filepath);
+
+				} catch(e) {
+
+					if(e instanceof Deno.errors.NotFound)
+						throw new HTTPError(404, e.message);
+					if( e instanceof Deno.errors.PermissionDenied )
+						throw new HTTPError(403, e.message);
+					
+					throw new HTTPError(500, e.message);
+				}
+
+				const parts = filepath.split('.');
+				const ext = parts[parts.length-1];
+
+				const content_type = mimelite.getType(ext) ?? "text/plain";
+				//TODO fct here...
+				return new Response( content, {headers: {"content-type": content_type, ...CORS_HEADERS}} );
+			}
 
 			let body = request.body;
 
@@ -180,6 +215,7 @@ function buildRequestHandler(routes: Routes, logger?: Logger) {
 
 			let answer = await route.handler({url, body, route});
 
+			//TODO: fct...
 			if(answer instanceof SSEResponse)
 				return new Response(answer._body, {headers: {"content-type": "text/event-stream", ...CORS_HEADERS} } )
 
@@ -206,12 +242,14 @@ function buildRequestHandler(routes: Routes, logger?: Logger) {
 			if(route !== null) {
 				try{
 					let answer = await route.handler({url, body: e.message, route});
+					//TODO: fct
 					return new Response( answer, {status: error_code, headers: {"content-type": "text/plain", ...CORS_HEADERS}} );
 				} catch(e) {
 					console.error(e);
 				}
 			}
 
+			//TODO: fct ?
 			return new Response( e.message, {status: error_code, headers: CORS_HEADERS} );
 		} finally {
 			if( logger !== undefined )
