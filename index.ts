@@ -189,9 +189,9 @@ function buildRequestHandler(routes: Routes, _static?: string, logger?: Logger) 
 				} catch(e) {
 
 					if(e instanceof Deno.errors.NotFound)
-						throw new HTTPError(404, e.message);
+						throw new HTTPError(404, "Not Found");
 					if( e instanceof Deno.errors.PermissionDenied )
-						throw new HTTPError(403, e.message);
+						throw new HTTPError(403, "Forbidden");
 					
 					throw new HTTPError(500, e.message);
 				}
