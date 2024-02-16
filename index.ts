@@ -173,7 +173,8 @@ async function buildAnswer(http_code: number, response: string|SSEResponse|any, 
 			mime = "application/json";
 	}
 
-	return new Response( response, {headers: {"content-type": mime,
+	return new Response( response, {status: http_code,
+									headers: {"content-type": mime,
 											  ...CORS_HEADERS}} );
 }
 
