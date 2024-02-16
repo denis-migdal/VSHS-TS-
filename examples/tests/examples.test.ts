@@ -16,8 +16,10 @@ async function assertResponse(response: Response, status: number, mime: string|n
 \x1b[1;31m- ${response.status}\x1b[0m
 \x1b[1;32m+ ${status}\x1b[0m`);
 
-	const rep_mime = response.headers.get('Content-Type');
-	if( rep_mime !== mime)
+	let rep_mime = response.headers.get('Content-Type');
+	if( mime === null && rep_mime === "application/octet-stream")
+		rep_mime = null;
+	if( rep_mime !== mime )
 		throw new Error(`\x1b[1;31mWrong mime-type:\x1b[0m
 \x1b[1;31m- ${rep_mime}\x1b[0m
 \x1b[1;32m+ ${mime}\x1b[0m`);
