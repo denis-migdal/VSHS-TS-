@@ -97,6 +97,8 @@ curl -w "\n" -X POST -d '{"body": "A"}' http://localhost:8080/params/C?url=B
 }
 ```
 
+⚠ Some brower might forbid to add body to GET queries.
+
 ### Routes variables
 
 The `route` parameter has two components:
@@ -167,7 +169,7 @@ We infer the response's `Content-Type` from the handler return value :
 | ----------------- | ------------------------------------------------- |
 | `string`          | `text/plain`                                      |
 | `URLSearchParams` | `application/x-www-form-urlencoded`               |
-| `FormData`        |                                                   |
+| `FormData`        | `application/x-www-form-urlencoded`               |
 | `Uint8Array`      | `application/octet-stream`                        |
 | `Blob`            | `blob.type`<br/>or<br/>`application/octet-stream` |
 | `any`             | `application/json`                                |
