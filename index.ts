@@ -152,6 +152,31 @@ const CORS_HEADERS = {
 	"Access-Control-Allow-Methods": "POST, GET, PATCH, PUT, OPTIONS, DELETE"
 };
 
+function buildAnswer(http_code: number, response: string|SSEResponse|any, mime: string|null = null) {
+
+	if( mime === null)
+		mime = "text/plain";
+
+	switch (true) {
+		case response instanceof SSEResponse: 
+			response = response._body;
+			mime =  "text/event-stream";
+			break;
+		case typeof response === "string": 
+			mime ??= "text/plain";
+			break;
+		case response instanceof Uint8Array:
+			mime ??= "application/octet-stream";
+			break;
+		default:
+			response = JSON.stringify(response, null, 4);
+			mime = "application/json";
+	}
+
+	return new Response( response, {headers: {"content-type": mime,
+											  ...CORS_HEADERS}} );
+}
+
 import { mimelite } from "https://deno.land/x/mimetypes@v1.0.0/mod.ts";
 function buildRequestHandler(routes: Routes, _static?: string, logger?: Logger) {
 
@@ -176,7 +201,7 @@ function buildRequestHandler(routes: Routes, _static?: string, logger?: Logger) 
 					throw new HTTPError(404, "Not found");
 
 				let filepath = `${_static}/${url.pathname}`;
-				let content!: string;
+				let content!: Uint8Array;
 
 				try {
 					const info = await Deno.stat(filepath);
@@ -184,7 +209,7 @@ function buildRequestHandler(routes: Routes, _static?: string, logger?: Logger) 
 					if( info.isDirectory )
 						filepath = `${filepath}/index.html`;
 
-					content = await Deno.readTextFile(filepath);
+					content = await Deno.readFile(filepath);
 
 				} catch(e) {
 
@@ -199,15 +224,16 @@ function buildRequestHandler(routes: Routes, _static?: string, logger?: Logger) 
 				const parts = filepath.split('.');
 				const ext = parts[parts.length-1];
 
-				const content_type = mimelite.getType(ext) ?? "text/plain";
-				//TODO fct here...
-				return new Response( content, {headers: {"content-type": content_type, ...CORS_HEADERS}} );
+				const mime = mimelite.getType(ext) ?? "text/plain";
+				
+				return buildAnswer(200, content, mime);
 			}
 
 			let body = request.body;
 
 			if(body !== null) {
 
+				//TODO: improve (request mime ?)
 				let txt = await request.text();
 				if( txt !== "")
 					body = JSON.parse(txt);
@@ -215,17 +241,7 @@ function buildRequestHandler(routes: Routes, _static?: string, logger?: Logger) 
 
 			let answer = await route.handler({url, body, route});
 
-			//TODO: fct...
-			if(answer instanceof SSEResponse)
-				return new Response(answer._body, {headers: {"content-type": "text/event-stream", ...CORS_HEADERS} } )
-
-			let content_type = "text/plain";
-			if( typeof answer !== "string" ) {
-				answer = JSON.stringify(answer, null, 4);
-				content_type = "application/json";
-			}
-
-			return new Response( answer, {headers: {"content-type": content_type, ...CORS_HEADERS}} );
+			return buildAnswer(200, answer);
 
 		} catch(e) {
 
@@ -239,18 +255,16 @@ function buildRequestHandler(routes: Routes, _static?: string, logger?: Logger) 
 
 			const error_url = new URL(`/errors/${error_code}`, url);
 			const route = getRouteHandler(regexes, "GET", error_url);
+			let answer  = e.message;
 			if(route !== null) {
 				try{
-					let answer = await route.handler({url, body: e.message, route});
-					//TODO: fct
-					return new Response( answer, {status: error_code, headers: {"content-type": "text/plain", ...CORS_HEADERS}} );
+					answer = await route.handler({url, body: e.message, route});	
 				} catch(e) {
-					console.error(e);
+					console.error(e); // errors handlers shoudn't raise errors...
 				}
 			}
 
-			//TODO: fct ?
-			return new Response( e.message, {status: error_code, headers: CORS_HEADERS} );
+			return buildAnswer(error_code, answer);
 		} finally {
 			if( logger !== undefined )
 				logger(ip, method, url, error);
