@@ -178,8 +178,8 @@ async function buildAnswer(http_code: number,
 			mime ??= "application/octet-stream";
 			break;
 		case response instanceof Blob:
-			response = await response.arrayBuffer();
 			mime ??= response.type ?? "application/octet-stream";
+			response = await response.arrayBuffer();
 			break;
 		default:
 			response = JSON.stringify(response, null, 4);

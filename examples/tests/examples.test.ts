@@ -28,13 +28,14 @@ async function assertResponse(response: Response, status: number, mime: string|n
 			throw new Error(`\x1b[1;31mWrong body:\x1b[0m
 \x1b[1;31m- ${rep}\x1b[0m
 \x1b[1;32m+ ${content}\x1b[0m`);
-	}
+	} else {
 
-	const rep_text = await response.text();
-	if( rep_text !== content)
-		throw new Error(`\x1b[1;31mWrong body:\x1b[0m
+		const rep_text = await response.text();
+		if( rep_text !== content)
+			throw new Error(`\x1b[1;31mWrong body:\x1b[0m
 \x1b[1;31m- ${rep_text}\x1b[0m
 \x1b[1;32m+ ${content}\x1b[0m`);
+	}
 }
 
 Deno.test("hello-world", async() => {
