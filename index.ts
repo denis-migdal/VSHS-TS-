@@ -189,8 +189,7 @@ async function buildAnswer(http_code: number,
 
 async function parseBody(request: Request) {
 
-	let body = request.body;
-	if( body === null)
+	if( request.body === null)
 		return null;
 
 	let mime = request.headers.get('Content-Type');
