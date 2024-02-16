@@ -157,6 +157,10 @@ async function buildAnswer(http_code: number,
 						   mime: string|null = null) {
 
 	switch (true) {
+		case response === null || response === undefined:
+			response = null;
+			mime =  null;
+			break;
 		case response instanceof SSEResponse: 
 			response = response._body;
 			mime =  "text/event-stream";
@@ -182,9 +186,12 @@ async function buildAnswer(http_code: number,
 			mime = "application/json";
 	}
 
+	const headers: HeadersInit = {...CORS_HEADERS};
+	if(mime !== null)
+		headers["content-type"] = mime;
+
 	return new Response( response, {status: http_code,
-									headers: {"content-type": mime!,
-											  ...CORS_HEADERS}} );
+									headers} );
 }
 
 async function parseBody(request: Request) {
@@ -193,8 +200,15 @@ async function parseBody(request: Request) {
 		return null;
 
 	let content_type = request.headers.get('Content-Type');
-	if( content_type === null)
-		return await request.arrayBuffer();
+	if( content_type === null || content_type === 'application/octet-stream') {
+
+		const buffer = await request.arrayBuffer();
+
+		if(buffer.byteLength === 0)
+			return null;
+
+		return new Uint8Array(buffer);
+	}
 
 	const [mime] = content_type.split(';')
 
@@ -216,7 +230,11 @@ async function parseBody(request: Request) {
 		}
 	}
 
-	return new Blob([await request.arrayBuffer()], {type: mime});
+	const buffer = await request.arrayBuffer()
+	if(buffer.byteLength === 0)
+		return null;
+
+	return new Blob([buffer], {type: mime});
 }
 
 import { mimelite } from "https://deno.land/x/mimetypes@v1.0.0/mod.ts";
