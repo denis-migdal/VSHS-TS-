@@ -1,6 +1,6 @@
 ## Examples
 
-You can test the examples from the section below, simply by running the server given in the `./examples` directory:
+You can run the examples from the section below, simply by running the server given in the `./examples` directory:
 
 ```shell
 deno task --cwd examples/ start
@@ -10,6 +10,12 @@ You can then send HTTP queries to the server with the command `curl`:
 
 ```shell
 curl -X $HTTP_METHOD -d "$BODY" -w "\n\nStatus code:%{http_code}\n" "$URL"
+```
+
+For development, you can run the tests :
+
+```shell
+deno task --cwd examples/ test
 ```
 
 ## Usage
@@ -92,7 +98,7 @@ curl -w "\n" -X POST -d '{"body": "A"}' http://localhost:8080/params/C?url=B
         "body": "A"
     },
     "pathParams": {
-        "route": "C"
+        "name": "C"
     }
 }
 ```

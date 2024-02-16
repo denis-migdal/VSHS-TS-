@@ -192,9 +192,11 @@ async function parseBody(request: Request) {
 	if( request.body === null)
 		return null;
 
-	let mime = request.headers.get('Content-Type');
-	if( mime === null)
+	let content_type = request.headers.get('Content-Type');
+	if( content_type === null)
 		return await request.arrayBuffer();
+
+	const [mime] = content_type.split(';')
 
 	if( ["text/plain", "application/json", "application/x-www-form-urlencoded"].includes(mime) ) {
 
