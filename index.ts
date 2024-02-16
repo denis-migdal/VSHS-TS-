@@ -168,6 +168,7 @@ async function buildAnswer(http_code: number, response: string|SSEResponse|any, 
 		case response instanceof Blob:
 			response = await response.arrayBuffer();
 			mime ??= response.type ?? "application/octet-stream";
+			break;
 		default:
 			response = JSON.stringify(response, null, 4);
 			mime = "application/json";
