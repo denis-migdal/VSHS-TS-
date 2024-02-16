@@ -164,6 +164,12 @@ async function buildAnswer(http_code: number,
 		case typeof response === "string": 
 			mime ??= "text/plain";
 			break;
+		case response instanceof FormData:
+			response = new URLSearchParams(response as any)
+		case response instanceof URLSearchParams:
+			mime = "application/x-www-form-urlencoded"
+			response = response.toString();
+			break;
 		case response instanceof Uint8Array:
 			mime ??= "application/octet-stream";
 			break;
@@ -204,7 +210,7 @@ async function parseBody(request: Request) {
 			if( mime === "application/json" )
 				throw e;
 			if( mime === "application/x-www-form-urlencoded")
-				return new URLSearchParams(text);
+				return Object.fromEntries(new URLSearchParams(text).entries());
 			return text;
 		}
 	}

@@ -163,13 +163,15 @@ Status code: 403
 
 We infer the response's `Content-Type` from the handler return value :
 
-| Return        | Mime                                              |
-| ------------- | ------------------------------------------------- |
-| `string`      | `text/plain`                                      |
-| `Uint8Array`  | `application/octet-stream`                        |
-| `Blob`        | `blob.type`<br/>or<br/>`application/octet-stream` |
-| `any`         | `application/json`                                |
-| `SSEResponse` | `text/event-stream`                               |
+| Return            | Mime                                              |
+| ----------------- | ------------------------------------------------- |
+| `string`          | `text/plain`                                      |
+| `URLSearchParams` | `application/x-www-form-urlencoded`               |
+| `FormData`        |                                                   |
+| `Uint8Array`      | `application/octet-stream`                        |
+| `Blob`            | `blob.type`<br/>or<br/>`application/octet-stream` |
+| `any`             | `application/json`                                |
+| `SSEResponse`     | `text/event-stream`                               |
 
 #### In the query
 
