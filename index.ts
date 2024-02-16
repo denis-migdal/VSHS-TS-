@@ -154,9 +154,6 @@ const CORS_HEADERS = {
 
 async function buildAnswer(http_code: number, response: string|SSEResponse|any, mime: string|null = null) {
 
-	if( mime === null)
-		mime = "text/plain";
-
 	switch (true) {
 		case response instanceof SSEResponse: 
 			response = response._body;
