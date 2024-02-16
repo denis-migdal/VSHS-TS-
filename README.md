@@ -161,7 +161,7 @@ Status code: 403
 
 #### In the response
 
-We infer the mime type from the handler return value :
+We infer the response's `Content-Type` from the handler return value :
 
 | Return        | Mime                                              |
 | ------------- | ------------------------------------------------- |
@@ -173,7 +173,39 @@ We infer the mime type from the handler return value :
 
 #### In the query
 
+We automatically perform the following conversions on the query body:
 
+| Mime                                | Result               |
+| ----------------------------------- | -------------------- |
+| No body                             | `null`               |
+| `text/plain`                        | `string` or `Object` |
+| `application/x-www-form-urlencoded` | `Object`             |
+| `application/json`                  | `Object`             |
+| `application/octet-stream`          | `Uint8Array`         |
+| others                              | `Blob`               |
+
+⚠ For `text/plain` and `application/x-www-form-urlencoded`, we first try to parse it with `JSON.parse()`.
+
+💡 The default mime-types set by the client are :
+
+| Source            | Mime-type                           |
+| ----------------- | ----------------------------------- |
+| `string`          | `text/plain`                        |
+| `URLSearchParams` | `application/x-www-form-urlencoded` |
+| `FormData`        | `application/x-www-form-urlencoded` |
+| `Uint8Array`      | None                                |
+| `Blob`            | `blob.type` or none                 |
+| `curl -d`         | `application/x-www-form-urlencoded` |
+
+💡 To provide an explicit mime-type in the query :
+
+```typescript
+fetch('...', {body: ..., headers: {"Content-Type", "..."})
+```
+
+```shell
+curl -d "..." -H "Content-Type: ..."
+```
 
 ### Static ressources
 

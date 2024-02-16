@@ -152,7 +152,9 @@ const CORS_HEADERS = {
 	"Access-Control-Allow-Methods": "POST, GET, PATCH, PUT, OPTIONS, DELETE"
 };
 
-async function buildAnswer(http_code: number, response: string|SSEResponse|any, mime: string|null = null) {
+async function buildAnswer(http_code: number,
+						   response: string|SSEResponse|any,
+						   mime: string|null = null) {
 
 	switch (true) {
 		case response instanceof SSEResponse: 
@@ -175,8 +177,39 @@ async function buildAnswer(http_code: number, response: string|SSEResponse|any, 
 	}
 
 	return new Response( response, {status: http_code,
-									headers: {"content-type": mime,
+									headers: {"content-type": mime!,
 											  ...CORS_HEADERS}} );
+}
+
+async function parseBody(request: Request) {
+
+	let body = request.body;
+	if( body === null)
+		return null;
+
+	let mime = request.headers.get('Content-Type');
+	if( mime === null)
+		return await request.arrayBuffer();
+
+	if( ["text/plain", "application/json", "application/x-www-form-urlencoded"].includes(mime) ) {
+
+		const text = await request.text();
+		if( text === "")
+			return null;
+
+		try {
+			return JSON.parse(text);
+		} catch(e) {
+
+			if( mime === "application/json" )
+				throw e;
+			if( mime === "application/x-www-form-urlencoded")
+				return new URLSearchParams(text);
+			return text;
+		}
+	}
+
+	return new Blob([await request.arrayBuffer()], {type: mime});
 }
 
 import { mimelite } from "https://deno.land/x/mimetypes@v1.0.0/mod.ts";
@@ -231,23 +264,7 @@ function buildRequestHandler(routes: Routes, _static?: string, logger?: Logger) 
 				return await buildAnswer(200, content, mime);
 			}
 
-			let body = request.body;
-
-			if(body !== null) {
-
-				//TODO: improve (request mime ?)
-
-				//application/x-www-form-urlencoded
-					// form data / URLSearchParams
-				// json
-				// text/plain
-				// binary
-
-				let txt = await request.text();
-				if( txt !== "")
-					body = JSON.parse(txt);
-			}
-
+			const body = await parseBody(request);
 			let answer = await route.handler({url, body, route});
 
 			return await buildAnswer(200, answer);
