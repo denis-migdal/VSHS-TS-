@@ -152,7 +152,7 @@ const CORS_HEADERS = {
 	"Access-Control-Allow-Methods": "POST, GET, PATCH, PUT, OPTIONS, DELETE"
 };
 
-function buildAnswer(http_code: number, response: string|SSEResponse|any, mime: string|null = null) {
+async function buildAnswer(http_code: number, response: string|SSEResponse|any, mime: string|null = null) {
 
 	if( mime === null)
 		mime = "text/plain";
@@ -168,6 +168,9 @@ function buildAnswer(http_code: number, response: string|SSEResponse|any, mime: 
 		case response instanceof Uint8Array:
 			mime ??= "application/octet-stream";
 			break;
+		case response instanceof Blob:
+			response = await response.arrayBuffer();
+			mime ??= response.type ?? "application/octet-stream";
 		default:
 			response = JSON.stringify(response, null, 4);
 			mime = "application/json";
@@ -226,7 +229,7 @@ function buildRequestHandler(routes: Routes, _static?: string, logger?: Logger) 
 
 				const mime = mimelite.getType(ext) ?? "text/plain";
 				
-				return buildAnswer(200, content, mime);
+				return await buildAnswer(200, content, mime);
 			}
 
 			let body = request.body;
@@ -234,6 +237,13 @@ function buildRequestHandler(routes: Routes, _static?: string, logger?: Logger) 
 			if(body !== null) {
 
 				//TODO: improve (request mime ?)
+
+				//application/x-www-form-urlencoded
+					// form data / URLSearchParams
+				// json
+				// text/plain
+				// binary
+
 				let txt = await request.text();
 				if( txt !== "")
 					body = JSON.parse(txt);
@@ -241,7 +251,7 @@ function buildRequestHandler(routes: Routes, _static?: string, logger?: Logger) 
 
 			let answer = await route.handler({url, body, route});
 
-			return buildAnswer(200, answer);
+			return await buildAnswer(200, answer);
 
 		} catch(e) {
 
@@ -264,7 +274,7 @@ function buildRequestHandler(routes: Routes, _static?: string, logger?: Logger) 
 				}
 			}
 
-			return buildAnswer(error_code, answer);
+			return await buildAnswer(error_code, answer);
 		} finally {
 			if( logger !== undefined )
 				logger(ip, method, url, error);
