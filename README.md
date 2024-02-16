@@ -12,7 +12,7 @@ You can then send HTTP queries to the server with the command `curl`:
 curl -X $HTTP_METHOD -d "$BODY" -w "\n\nStatus code:%{http_code}\n" "$URL"
 ```
 
-For development, you can run the tests :
+For development purposes, you can execute the tests with :
 
 ```shell
 deno task --cwd examples/ test
