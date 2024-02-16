@@ -48,3 +48,28 @@ Deno.test("params", async() => {
 }`);
 
 });
+
+Deno.test("exception", async() => {
+
+	const answer = await fetch('http://localhost:8080/exception');
+
+	await assertResponse(answer, 500, "text/plain", `Oups...`);
+
+});
+
+Deno.test("HTTPError", async() => {
+
+	const answer = await fetch('http://localhost:8080/http-error');
+
+	await assertResponse(answer, 403, "text/plain", `Forbidden Access`);
+
+});
+
+
+Deno.test("/", async() => {
+
+	const answer = await fetch('http://localhost:8080/');
+
+	await assertResponse(answer, 200, "text/html", `<b>Hello world</b>`);
+
+});
