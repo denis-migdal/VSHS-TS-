@@ -24,11 +24,12 @@ export default async function startHTTPServer({ port = 8080,
 	if( typeof routes === "string" ) {
 		if(routes[0] === "/")
 			routes = rootDir() + routes;
-		if(_static?.[0] === "/")
-			_static = rootDir() + _static;
 			
 		routesHandlers = await loadAllRoutesHandlers(routes);
 	}
+	
+	if(_static?.[0] === "/")
+		_static = rootDir() + _static;
 	
 	const requestHandler = buildRequestHandler(routesHandlers, _static, logger);
 
@@ -261,6 +262,7 @@ function buildRequestHandler(routes: Routes, _static?: string, logger?: Logger) 
 
 			const route = getRouteHandler(regexes, method, url);
 			if(route === null) {
+			
 				if( _static === undefined )
 					throw new HTTPError(404, "Not found");
 
