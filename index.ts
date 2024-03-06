@@ -3,7 +3,7 @@ type Logger = (ip: string, method: string, url: URL, error: null|HTTPError|Error
 type HTTPServerOpts = {
 	port: number,
 	hostname: string,
-	routes: string,
+	routes: string|Routes,
 	static?: string,
 	logger?: Logger // not documented
 };
@@ -20,12 +20,16 @@ export default async function startHTTPServer({ port = 8080,
 												logger = () => {}
 											}: HTTPServerOpts) {
 
-	if(routes[0] === "/")
-		routes = rootDir() + routes;
-	if(_static?.[0] === "/")
-		_static = rootDir() + _static;
-
-	const routesHandlers = await loadAllRoutesHandlers(routes);
+	let routesHandlers: Routes = routes as any;
+	if( typeof routes === "string" ) {
+		if(routes[0] === "/")
+			routes = rootDir() + routes;
+		if(_static?.[0] === "/")
+			_static = rootDir() + _static;
+			
+		routesHandlers = await loadAllRoutesHandlers(routes);
+	}
+	
 	const requestHandler = buildRequestHandler(routesHandlers, _static, logger);
 
 	// https://docs.deno.com/runtime/tutorials/http_server
