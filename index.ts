@@ -230,7 +230,7 @@ async function parseBody(request: Request) {
 			if( mime === "application/json" )
 				throw e;
 			if( mime === "application/x-www-form-urlencoded")
-				return Object.fromEntries(new URLSearchParams(text).entries());
+				return Object.fromEntries(new URLSearchParams(text).entries() );
 			return text;
 		}
 	}
@@ -353,7 +353,7 @@ function match(regex: RegExp, uri: string) {
 
 function getRouteHandler(regexes: (readonly [RegExp, Handler, string])[], method: REST_Methods, url: URL) {
 
-	let curRoute = `${url.pathname}/${method}`;
+	let curRoute = `${ decodeURI(url.pathname) }/${method}`;
 
 	for(let route of regexes) {
 
